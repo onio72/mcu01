@@ -45,7 +45,7 @@
         </div>
         <div class="control-group">
             <label for="rpmSlider">Revoluciones por minuto:</label>
-            <input type="range" id="rpmSlider" min="1" max="60" value="10">
+            <input type="range" id="rpmSlider" min="5" max="30" step="5" value="10">
         </div>
         <div class="control-group">
             <label for="showVelocities">Mostrar velocidades</label>
@@ -99,11 +99,13 @@
             ctx.arc(xA, yA, 5, 0, Math.PI * 2);
             ctx.fillStyle = 'red';
             ctx.fill();
+            ctx.fillText("A", xA + 8, yA - 8);
 
             ctx.beginPath();
             ctx.arc(xB, yB, 5, 0, Math.PI * 2);
             ctx.fillStyle = 'blue';
             ctx.fill();
+            ctx.fillText("B", xB + 8, yB - 8);
 
             if (showVelocities.checked) {
                 const rpm = parseInt(rpmSlider.value);
@@ -119,7 +121,7 @@
         function update() {
             const rpm = parseInt(rpmSlider.value);
             const deltaAngle = (rpm * 360) / 60 / 60;
-            angle = (angle + deltaAngle) % 360;
+            angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
             drawWheel();
             if (!isPaused) {
                 animationId = requestAnimationFrame(update);
