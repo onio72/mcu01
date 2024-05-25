@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimiento circular uniforme (I)</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        .velocities {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Movimiento circular uniforme (I)</h1>
+    <p>Autor: Antonio González García</p>
+    <div class="controls">
+        <div class="control-group">
+            <label for="sliderA">Radio del punto A:</label>
+            <input type="range" id="sliderA" min="0" max="150" value="100">
+        </div>
+        <div class="control-group">
+            <label for="sliderB">Radio del punto B:</label>
+            <input type="range" id="sliderB" min="0" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label for="rpmSlider">Revoluciones por minuto:</label>
+            <input type="range" id="rpmSlider" min="1" max="60" value="10">
+        </div>
+        <div class="control-group">
+            <label for="showVelocities">Mostrar velocidades</label>
+            <input type="checkbox" id="showVelocities">
+        </div>
+        <div class="control-group">
+            <button id="startButton">Iniciar</button>
+            <button id="pauseButton">Pausa</button>
+            <button id="resetButton">Reiniciar</button>
+        </div>
+    </div>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <div class="velocities" id="velocities"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const rpmSlider = document.getElementById('rpmSlider');
+        const showVelocities = document.getElementById('showVelocities');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
+        const velocitiesDiv = document.getElementById('velocities');
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const wheelRadius = 150;
+        let angle = 0;
+        let animationId;
+        let isPaused = false;
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, wheelRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
+
+            const angleRad = (angle * Math.PI) / 180;
+
+            const xA = centerX + radiusA * Math.cos(angleRad);
+            const yA = centerY + radiusA * Math.sin(angleRad);
+            const xB = centerX + radiusB * Math.cos(angleRad);
+            const yB = centerY + radiusB * Math.sin(angleRad);
+
+            ctx.beginPath();
+            ctx.arc(xA, yA, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(xB, yB, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+
+            if (showVelocities.checked) {
+                const rpm = parseInt(rpmSlider.value);
+                const omega = (rpm * 2 * Math.PI) / 60;
+                const vA = (omega * radiusA).toFixed(2);
+                const vB = (omega * radiusB).toFixed(2);
+                velocitiesDiv.innerHTML = `Velocidad de A: ${vA} px/s<br>Velocidad de B: ${vB} px/s`;
+            } else {
+                velocitiesDiv.innerHTML = '';
+            }
+        }
+
+        function update() {
+            const rpm = parseInt(rpmSlider.value);
+            const deltaAngle = (rpm * 360) / 60 / 60;
+            angle = (angle + deltaAngle) % 360;
+            drawWheel();
+            if (!isPaused) {
+                animationId = requestAnimationFrame(update);
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            if (isPaused) {
+                isPaused = false;
+                update();
+            } else if (!animationId) {
+                update();
+            }
+        });
+
+        pauseButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        });
+
+        resetButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+            animationId = null;
+            angle = 0;
+            drawWheel();
+        });
+
+        sliderA.addEventListener('input', drawWheel);
+        sliderB.addEventListener('input', drawWheel);
+        rpmSlider.addEventListener('input', drawWheel);
+        showVelocities.addEventListener('change', drawWheel);
+
+        drawWheel();
+    </script>
+</body>
+</html>
