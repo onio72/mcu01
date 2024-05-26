@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -114,15 +114,15 @@
             <p>Pregunta 4: ¿Qué punto tiene mayor aceleración tangencial?</p>
             <input type="radio" name="q4" value="A">A
             <input type="radio" name="q4" value="B">B
-            <input type="radio" name="q4" value="C">Ambos tienen la misma aceleración tangencial (a_t=0).
-            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (a_t distinta de 0).
+            <input type="radio" name="q4" value="C">Ambos tienen la misma aceleración tangencial (\(a_t=0\)).
+            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (\(a_t\) distinta de 0).
         </div>
         <div class="question">
             <p>Pregunta 5: ¿Qué punto tiene mayor aceleración normal?</p>
             <input type="radio" name="q5" value="A">A
             <input type="radio" name="q5" value="B">B
-            <input type="radio" name="q5" value="C">Ambos tienen la misma aceleración normal (a_n=0).
-            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (a_n distinta de 0).
+            <input type="radio" name="q5" value="C">Ambos tienen la misma aceleración normal (\(a_n=0\)).
+            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (\(a_n\) distinta de 0).
         </div>
         <button id="submitAnswers">Enviar respuestas</button>
         <div class="results" id="results"></div>
@@ -152,8 +152,8 @@
         let animationId;
         let isPaused = false;
         let time = 0;
-        let distanceA = 0;
-        let distanceB = 0;
+        let distancesA = [];
+        let distancesB = [];
 
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -193,8 +193,8 @@
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
                 ctx.fillStyle = 'black';
-                ctx.fillText(`$v_A = ${vA}\\, \\text{m/s}$`, 10, 20);
-                ctx.fillText(`$v_B = ${vB}\\, \\text{m/s}$`, 10, 40);
+                ctx.fillText(`$$v_A = ${vA}\\, \\text{m/s}$$`, 10, 20);
+                ctx.fillText(`$$v_B = ${vB}\\, \\text{m/s}$$`, 10, 40);
                 MathJax.typeset(); // Render LaTeX
             }
         }
@@ -232,7 +232,11 @@
             cancelAnimationFrame(animationId);
             animationId = null;
             angle = 0;
+            time = 0;
+            distancesA = [];
+            distancesB = [];
             drawWheel();
+            resetGraph();
         });
 
         sliderA.addEventListener('input', drawWheel);
@@ -253,8 +257,8 @@
         // Graph for distance vs time
         function resetGraph() {
             time = 0;
-            distanceA = 0;
-            distanceB = 0;
+            distancesA = [];
+            distancesB = [];
             graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
 
             // Draw axes
@@ -277,19 +281,27 @@
             const omega = (rpm * 2 * Math.PI) / 60;
             const radiusA = parseInt(sliderA.value);
             const radiusB = parseInt(sliderB.value);
-            distanceA = omega * radiusA * time / 100; // Convert to meters
-            distanceB = omega * radiusB * time / 100; // Convert to meters
+            const distanceA = omega * radiusA * time / 100; // Convert to meters
+            const distanceB = omega * radiusB * time / 100; // Convert to meters
 
-            const x = 40 + time * 10;
-            const yA = 400 - distanceA * 10;
-            const yB = 400 - distanceB * 10;
+            distancesA.push({ x: time * 10, y: 400 - distanceA * 10 });
+            distancesB.push({ x: time * 10, y: 400 - distanceB * 10 });
 
-            graphCtx.lineTo(x, yA);
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            resetGraph();
+
+            graphCtx.beginPath();
             graphCtx.strokeStyle = 'red';
+            distancesA.forEach(point => {
+                graphCtx.lineTo(point.x, point.y);
+            });
             graphCtx.stroke();
 
-            graphCtx.lineTo(x, yB);
+            graphCtx.beginPath();
             graphCtx.strokeStyle = 'blue';
+            distancesB.forEach(point => {
+                graphCtx.lineTo(point.x, point.y);
+            });
             graphCtx.stroke();
         }
 
