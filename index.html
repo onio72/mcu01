@@ -42,11 +42,14 @@
         .results {
             margin-top: 10px;
         }
+        .graph-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .graph {
             display: none;
-            position: absolute;
-            right: 420px;
-            top: 20px;
+            margin-left: 20px;
         }
     </style>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -82,12 +85,12 @@
             <input type="checkbox" id="showGraph">
         </div>
     </div>
-    <canvas id="canvas" width="400" height="400"></canvas>
-    <div class="velocities" id="velocities"></div>
-    <div class="graph" id="graph">
-        <canvas id="graphCanvas" width="400" height="200"></canvas>
+    <div class="graph-container">
+        <canvas id="canvas" width="400" height="400"></canvas>
+        <div class="graph" id="graph">
+            <canvas id="graphCanvas" width="400" height="400"></canvas>
+        </div>
     </div>
-
     <div class="questions">
         <div class="question">
             <p>Pregunta 1: ¿Qué punto se mueve con mayor velocidad angular?</p>
@@ -124,7 +127,6 @@
         <button id="submitAnswers">Enviar respuestas</button>
         <div class="results" id="results"></div>
     </div>
-
     <p>Autor: Antonio González García</p>
 
     <script>
@@ -191,8 +193,8 @@
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
                 ctx.fillStyle = 'black';
-                ctx.fillText(`v_A: $${vA} \\ \\text{m/s}$`, 10, 20);
-                ctx.fillText(`v_B: $${vB} \\ \\text{m/s}$`, 10, 40);
+                ctx.fillText(`$v_A = ${vA}\\, \\text{m/s}$`, 10, 20);
+                ctx.fillText(`$v_B = ${vB}\\, \\text{m/s}$`, 10, 40);
                 MathJax.typeset(); // Render LaTeX
             }
         }
@@ -254,8 +256,19 @@
             distanceA = 0;
             distanceB = 0;
             graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Draw axes
             graphCtx.beginPath();
-            graphCtx.moveTo(0, graphCanvas.height);
+            graphCtx.moveTo(40, 0);
+            graphCtx.lineTo(40, 400);
+            graphCtx.lineTo(400, 400);
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // Labels
+            graphCtx.fillStyle = 'black';
+            graphCtx.fillText('Distancia (m)', 10, 10);
+            graphCtx.fillText('Tiempo (s)', 350, 390);
         }
 
         function updateGraph() {
@@ -267,9 +280,9 @@
             distanceA = omega * radiusA * time / 100; // Convert to meters
             distanceB = omega * radiusB * time / 100; // Convert to meters
 
-            const x = time * 10;
-            const yA = graphCanvas.height - distanceA * 10;
-            const yB = graphCanvas.height - distanceB * 10;
+            const x = 40 + time * 10;
+            const yA = 400 - distanceA * 10;
+            const yB = 400 - distanceB * 10;
 
             graphCtx.lineTo(x, yA);
             graphCtx.strokeStyle = 'red';
@@ -281,19 +294,21 @@
         }
 
         // Questions and answers
-        const correctAnswers = {
-            q1: 'C',
-            q2: 'A',
-            q3: 'A',
-            q4: 'C',
-            q5: 'A'
-        };
-
         const submitButton = document.getElementById('submitAnswers');
         const resultsDiv = document.getElementById('results');
 
         submitButton.addEventListener('click', () => {
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
             let score = 0;
+            const answers = {
+                q1: 'C',
+                q2: radiusA > radiusB ? 'A' : 'B',
+                q3: radiusA > radiusB ? 'A' : 'B',
+                q4: 'C',
+                q5: radiusA > radiusB ? 'A' : 'B'
+            };
+
             const formData = new FormData();
             const formInputs = document.querySelectorAll('.questions input[type="radio"]:checked');
             formInputs.forEach(input => {
@@ -302,7 +317,7 @@
 
             resultsDiv.innerHTML = '';
             for (let [key, value] of formData.entries()) {
-                const correct = value === correctAnswers[key];
+                const correct = value === answers[key];
                 score += correct ? 1 : 0;
                 const resultText = document.createElement('p');
                 resultText.textContent = `${key.toUpperCase()}: ${value} ${correct ? '✓' : '✗'}`;
