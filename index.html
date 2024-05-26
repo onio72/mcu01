@@ -193,7 +193,7 @@
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
                 velocitiesDiv.innerHTML = `$$v_A = ${vA}\\, \\text{m/s}$$<br>$$v_B = ${vB}\\, \\text{m/s}$$`;
-                MathJax.typesetPromise(); // Render LaTeX
+                MathJax.typeset(); // Render LaTeX
             } else {
                 velocitiesDiv.innerHTML = '';
             }
@@ -286,7 +286,20 @@
             distancesA.push({ x: 40 + time * 10, y: 400 - distanceA * 10 });
             distancesB.push({ x: 40 + time * 10, y: 400 - distanceB * 10 });
 
-            resetGraph();
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            // Draw axes
+            graphCtx.beginPath();
+            graphCtx.moveTo(40, 0);
+            graphCtx.lineTo(40, 400);
+            graphCtx.lineTo(400, 400);
+            graphCtx.strokeStyle = 'black';
+            graphCtx.stroke();
+
+            // Labels
+            graphCtx.fillStyle = 'black';
+            graphCtx.fillText('Distancia (m)', 10, 10);
+            graphCtx.fillText('Tiempo (s)', 350, 390);
 
             // Draw the red line for A
             graphCtx.beginPath();
