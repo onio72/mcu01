@@ -1,296 +1,160 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de goteo de grifo</title>
+    <title>Movimiento circular uniforme (I)</title>
     <style>
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
         }
-        #canvas {
+        canvas {
             border: 1px solid black;
-            background-color: white;
-            position: relative;
-            margin-bottom: 20px;
+            background-color: lightgray;
         }
         .controls {
-            margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .questions {
-            margin-top: 20px;
-        }
-        .question {
+        .control-group {
             margin-bottom: 10px;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        .correct {
-            color: green;
-        }
-        .incorrect {
-            color: red;
-        }
-        .feedback {
-            margin-top: 20px;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Grifo que gotea</h1>
-    <p>Puedes modificar el lapso de tiempo de separación entre las gotas y la aceleración de la gravedad. Tras experimentar con la animación responde a las preguntas de abajo.</p>
+    <h1>Movimiento circular uniforme (I)</h1>
+    <p>Autor: Antonio González García</p>
     <div class="controls">
-        <label for="intervalSlider">Intervalo de goteo (ms): </label>
-        <input type="range" id="intervalSlider" min="100" max="2000" value="1000" step="100">
-        <span id="intervalValue">1000</span> ms
-
-        <br>
-
-        <label for="gravitySlider">Aceleración de la gravedad (m/s²): </label>
-        <input type="range" id="gravitySlider" min="1" max="4" value="2" step="1">
-        <span id="gravityValue">2</span> m/s²
-
-        <br>
-
-        <label for="showTimeCheckbox">Mostrar tiempo de caída: </label>
-        <input type="checkbox" id="showTimeCheckbox" checked>
-
-        <br>
-
-        <button onclick="startSimulation()">Iniciar</button>
-        <button onclick="pauseSimulation()">Pausa</button>
-        <button onclick="resetSimulation()">Reiniciar</button>
-        <button onclick="freezeOnFirstDrop()">Congelar</button>
+        <div class="control-group">
+            <label for="sliderA">Radio del punto A:</label>
+            <input type="range" id="sliderA" min="0" max="150" value="100">
+        </div>
+        <div class="control-group">
+            <label for="sliderB">Radio del punto B:</label>
+            <input type="range" id="sliderB" min="0" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label for="rpmSlider">Revoluciones por minuto:</label>
+            <input type="range" id="rpmSlider" min="5" max="30" step="5" value="10">
+        </div>
+        <div class="control-group">
+            <label for="showVelocities">Mostrar velocidades</label>
+            <input type="checkbox" id="showVelocities">
+        </div>
+        <div class="control-group">
+            <button id="startButton">Iniciar</button>
+            <button id="pauseButton">Pausa</button>
+            <button id="resetButton">Reiniciar</button>
+        </div>
     </div>
-    <canvas id="canvas" width="400" height="600"></canvas>
-
-    <div class="questions">
-        <div class="question">
-            <p>Pregunta 1: ¿Qué tipo de movimiento describen las gotas al caer?</p>
-            <div id="question1-options"></div>
-        </div>
-        <div class="question">
-            <p>Pregunta 2: ¿Qué ocurre con el tiempo que tarda en llegar al suelo una gota al aumentar la aceleración de la gravedad?</p>
-            <input type="radio" name="question2" value="disminuye"> Disminuye<br>
-            <input type="radio" name="question2" value="aumenta"> Aumenta<br>
-            <input type="radio" name="question2" value="igual"> Se mantiene igual<br>
-        </div>
-        <div class="question">
-            <p>Pregunta 3: ¿Qué ocurre si aumentas el intervalo de goteo?</p>
-            <input type="radio" name="question3" value="more"> Más gotas caen<br>
-            <input type="radio" name="question3" value="less"> Menos gotas caen<br>
-            <input type="radio" name="question3" value="same"> El número de gotas no cambia<br>
-        </div>
-        <div class="question">
-            <p>Pregunta 4: Las gotas caen regularmente cada cierto intervalo de tiempo.</p>
-            <input type="radio" name="question4" value="true"> Verdadero<br>
-            <input type="radio" name="question4" value="false"> Falso<br>
-        </div>
-        <div class="question">
-            <p>Pregunta 5: La distancia entre gotas es...</p>
-            <input type="radio" name="question5" value="same"> siempre la misma<br>
-            <input type="radio" name="question5" value="increase"> aumenta a medida que caen las gotas porque cada vez van más rápido<br>
-            <input type="radio" name="question5" value="decrease"> disminuye a medida que caen las gotas<br>
-        </div>
-        <button onclick="checkAnswers()">Enviar respuestas</button>
-        <div id="feedback" class="feedback"></div>
-    </div>
-
-    <div class="footer">
-        Animación creada por Antonio González
-    </div>
+    <canvas id="canvas" width="400" height="400"></canvas>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const rpmSlider = document.getElementById('rpmSlider');
+        const showVelocities = document.getElementById('showVelocities');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
 
-        let intervalId;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const wheelRadius = 150;
+        let angle = 0;
         let animationId;
         let isPaused = false;
-        let dropInterval = 1000;
-        const faucetHeight = 100; // Altura fija del grifo en px
-        let gravity = 2; // Gravedad inicial en m/s²
-        const pixelsPerMeter = 100; // Factor de conversión para la simulación
-        const drops = [];
-        let showTime = true;
-        const faucetImage = new Image();
-        faucetImage.src = 'grifov2.png'; // Icono del grifo
-        let freezeOnFirstDropFlag = false;
-        let faucetX = 185; // Posición inicial del grifo en px
 
-        document.getElementById('intervalSlider').addEventListener('input', (e) => {
-            dropInterval = e.target.value;
-            document.getElementById('intervalValue').textContent = dropInterval;
-            resetSimulation();
-        });
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        document.getElementById('gravitySlider').addEventListener('input', (e) => {
-            gravity = e.target.value;
-            document.getElementById('gravityValue').textContent = gravity;
-            resetSimulation();
-        });
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, wheelRadius, 0, Math.PI * 2);
+            ctx.fillStyle = 'gray';
+            ctx.fill();
+            ctx.stroke();
 
-        document.getElementById('showTimeCheckbox').addEventListener('change', (e) => {
-            showTime = e.target.checked;
-            resetSimulation();
-        });
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
 
-        function drawFaucet() {
-            ctx.drawImage(faucetImage, faucetX, faucetHeight - 50, 30, 50); // Ajustar la posición horizontal del grifo
-        }
+            const angleRad = (angle * Math.PI) / 180;
 
-        function drawGround() {
-            ctx.fillStyle = 'brown';
-            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-        }
+            const xA = centerX + radiusA * Math.cos(angleRad);
+            const yA = centerY + radiusA * Math.sin(angleRad);
+            const xB = centerX + radiusB * Math.cos(angleRad);
+            const yB = centerY + radiusB * Math.sin(angleRad);
 
-        function startSimulation() {
-            clearInterval(intervalId);
-            cancelAnimationFrame(animationId);
-            isPaused = false;
-            freezeOnFirstDropFlag = false;
-            intervalId = setInterval(() => {
-                drops.push({
-                    x: parseInt(faucetX) + 5, // Ajustar la posición de la gota para que salga del extremo izquierdo del grifo
-                    y: faucetHeight,
-                    time: 0,
-                    velocity: 0
-                });
-                updateDropCounter();
-            }, dropInterval);
-            update();
-        }
+            ctx.beginPath();
+            ctx.arc(xA, yA, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.fillText("A", xA + 8, yA - 8);
 
-        function pauseSimulation() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                clearInterval(intervalId);
-                cancelAnimationFrame(animationId);
-            } else {
-                startSimulation();
+            ctx.beginPath();
+            ctx.arc(xB, yB, 5, 0, Math.PI * 2);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+            ctx.fillText("B", xB + 8, yB - 8);
+
+            if (showVelocities.checked) {
+                const rpm = parseInt(rpmSlider.value);
+                const omega = (rpm * 2 * Math.PI) / 60;
+                const vA = (omega * radiusA / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+                const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+
+                ctx.fillStyle = 'black';
+                ctx.fillText(`v_A: ${vA} m/s`, 10, 20);
+                ctx.fillText(`v_B: ${vB} m/s`, 10, 40);
             }
         }
 
-        function resetSimulation() {
-            clearInterval(intervalId);
-            cancelAnimationFrame(animationId);
-            isPaused = true;
-            freezeOnFirstDropFlag = false;
-            drops.length = 0;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawFaucet();
-            drawGround();
-            updateDropCounter();
-        }
-
-        function freezeOnFirstDrop() {
-            freezeOnFirstDropFlag = true;
-        }
-
         function update() {
-            if (isPaused) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawFaucet();
-            drawGround();
-            drops.forEach((drop, index) => {
-                drop.time += 0.016; // Incrementa el tiempo (aprox. 60 FPS)
-                drop.velocity = gravity * drop.time; // La velocidad aumenta linealmente con el tiempo
-                drop.y += drop.velocity * 0.016 * pixelsPerMeter; // La distancia recorrida aumenta cuadráticamente con el tiempo
-                if (drop.y < canvas.height - 30) { // Detener un poco antes de tocar el suelo (10 px)
-                    ctx.beginPath();
-                    ctx.arc(drop.x, drop.y, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = 'blue';
-                    ctx.fill();
-                    if (showTime) {
-                        ctx.font = "12px Arial";
-                        ctx.fillStyle = "black";
-                        ctx.fillText(`${drop.time.toFixed(2)} s`, drop.x + 5, drop.y);
-                    }
-                } else if (drop.y >= canvas.height - 30 && drop.y < canvas.height - 20 && freezeOnFirstDropFlag) {
-                    isPaused = true;
-                    clearInterval(intervalId);
-                    cancelAnimationFrame(animationId);
-                    freezeOnFirstDropFlag = false; // Reiniciar la bandera después de pausar
-                } else if (drop.y >= canvas.height - 20) {
-                    drops.splice(index, 1); // Remover la gota que ha tocado el suelo
-                    updateDropCounter();
-                }
-            });
-            drawDropCounter();
+            const rpm = parseInt(rpmSlider.value);
+            const deltaAngle = (rpm * 360) / 60 / 60;
+            angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
+            drawWheel();
             if (!isPaused) {
                 animationId = requestAnimationFrame(update);
             }
         }
 
-        function updateDropCounter() {
-            const counter = document.getElementById('dropCounter');
-            if (counter) {
-                counter.textContent = `${drops.length} gotas`;
+        startButton.addEventListener('click', () => {
+            if (isPaused) {
+                isPaused = false;
+                update();
+            } else if (!animationId) {
+                update();
             }
-        }
+        });
 
-        function drawDropCounter() {
-            ctx.font = "16px Arial";
-            ctx.fillStyle = "black";
-            ctx.fillText(`${drops.length} gotas`, canvas.width - 100, 30);
-        }
+        pauseButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        });
 
-        // Inicializar la imagen del grifo
-        faucetImage.onload = () => {
-            drawFaucet();
-        };
+        resetButton.addEventListener('click', () => {
+            isPaused = true;
+            cancelAnimationFrame(animationId);
+            animationId = null;
+            angle = 0;
+            drawWheel();
+        });
 
-        drawGround(); // Dibujar el suelo al cargar la página
+        sliderA.addEventListener('input', drawWheel);
+        sliderB.addEventListener('input', drawWheel);
+        rpmSlider.addEventListener('input', drawWheel);
+        showVelocities.addEventListener('change', drawWheel);
 
-        function checkAnswers() {
-            const answers = {
-                question1: "MRUA",
-                question2: "disminuye",
-                question3: "less",
-                question4: "true",
-                question5: "increase"
-            };
-            let score = 0;
-            Object.keys(answers).forEach(q => {
-                const selected = document.querySelector(`input[name="${q}"]:checked`);
-                if (selected) {
-                    if (selected.value === answers[q]) {
-                        score++;
-                        selected.parentNode.classList.add('correct');
-                    } else {
-                        selected.parentNode.classList.add('incorrect');
-                    }
-                }
-            });
-            const feedback = document.getElementById('feedback');
-            feedback.textContent = `Has respondido correctamente ${score} de 5 preguntas.`;
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        window.onload = () => {
-            const question1Options = [
-                '<input type="radio" name="question1" value="MRU"> MRU<br>',
-                '<input type="radio" name="question1" value="MRUA"> MRUA<br>',
-                '<input type="radio" name="question1" value="MCUA"> MCUA<br>'
-            ];
-            shuffle(question1Options);
-            document.getElementById('question1-options').innerHTML = question1Options.join('');
-        };
+        drawWheel();
     </script>
 </body>
 </html>
