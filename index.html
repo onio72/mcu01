@@ -143,7 +143,9 @@
         const graphDiv = document.getElementById('graph');
         const graphCanvas = document.getElementById('graphCanvas');
         const graphCtx = graphCanvas.getContext('2d');
-        const velocitiesDiv = document.getElementById('velocities');
+        const velocitiesDiv = document.createElement('div');
+        velocitiesDiv.classList.add('velocities');
+        document.body.appendChild(velocitiesDiv);
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -200,15 +202,15 @@
         }
 
         function update() {
-            const rpm = parseInt(rpmSlider.value);
-            const deltaAngle = (rpm * 360) / 60 / 60;
-            angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
-            drawWheel();
             if (!isPaused) {
+                const rpm = parseInt(rpmSlider.value);
+                const deltaAngle = (rpm * 360) / 60 / 60;
+                angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
+                drawWheel();
+                if (showGraph.checked) {
+                    updateGraph();
+                }
                 animationId = requestAnimationFrame(update);
-            }
-            if (showGraph.checked) {
-                updateGraph();
             }
         }
 
@@ -302,22 +304,26 @@
             graphCtx.fillText('Tiempo (s)', 350, 390);
 
             // Draw the red line for A
-            graphCtx.beginPath();
-            graphCtx.strokeStyle = 'red';
-            graphCtx.moveTo(distancesA[0].x, distancesA[0].y);
-            distancesA.forEach(point => {
-                graphCtx.lineTo(point.x, point.y);
-            });
-            graphCtx.stroke();
+            if (distancesA.length > 1) {
+                graphCtx.beginPath();
+                graphCtx.strokeStyle = 'red';
+                graphCtx.moveTo(distancesA[0].x, distancesA[0].y);
+                distancesA.forEach(point => {
+                    graphCtx.lineTo(point.x, point.y);
+                });
+                graphCtx.stroke();
+            }
 
             // Draw the blue line for B
-            graphCtx.beginPath();
-            graphCtx.strokeStyle = 'blue';
-            graphCtx.moveTo(distancesB[0].x, distancesB[0].y);
-            distancesB.forEach(point => {
-                graphCtx.lineTo(point.x, point.y);
-            });
-            graphCtx.stroke();
+            if (distancesB.length > 1) {
+                graphCtx.beginPath();
+                graphCtx.strokeStyle = 'blue';
+                graphCtx.moveTo(distancesB[0].x, distancesB[0].y);
+                distancesB.forEach(point => {
+                    graphCtx.lineTo(point.x, point.y);
+                });
+                graphCtx.stroke();
+            }
         }
 
         // Questions and answers
