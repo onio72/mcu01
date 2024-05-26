@@ -10,7 +10,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
             font-family: Arial, sans-serif;
         }
         canvas {
@@ -25,11 +24,37 @@
         .control-group {
             margin-bottom: 10px;
         }
+        .questions {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .velocities {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border: 1px solid #000;
+        }
+        .results {
+            margin-top: 10px;
+        }
+        .graph {
+            display: none;
+            position: absolute;
+            right: 420px;
+            top: 20px;
+        }
     </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <h1>Movimiento circular uniforme (I)</h1>
-    <p>Autor: Antonio González García</p>
+    <p>Modifica las distancias de los puntos A y B al centro del disco así como la velocidad angular de este. Tras experimentar con la animación responde a las preguntas de abajo.</p>
     <div class="controls">
         <div class="control-group">
             <label for="sliderA">Radio del punto A:</label>
@@ -52,8 +77,55 @@
             <button id="pauseButton">Pausa</button>
             <button id="resetButton">Reiniciar</button>
         </div>
+        <div class="control-group">
+            <label for="showGraph">Mostrar gráfica de distancia recorrida</label>
+            <input type="checkbox" id="showGraph">
+        </div>
     </div>
     <canvas id="canvas" width="400" height="400"></canvas>
+    <div class="velocities" id="velocities"></div>
+    <div class="graph" id="graph">
+        <canvas id="graphCanvas" width="400" height="200"></canvas>
+    </div>
+
+    <div class="questions">
+        <div class="question">
+            <p>Pregunta 1: ¿Qué punto se mueve con mayor velocidad angular?</p>
+            <input type="radio" name="q1" value="A">A
+            <input type="radio" name="q1" value="B">B
+            <input type="radio" name="q1" value="C">Ambos tienen la misma velocidad angular.
+        </div>
+        <div class="question">
+            <p>Pregunta 2: ¿Qué punto recorre más distancia en una vuelta?</p>
+            <input type="radio" name="q2" value="A">A
+            <input type="radio" name="q2" value="B">B
+            <input type="radio" name="q2" value="C">Ambos recorren la misma distancia.
+        </div>
+        <div class="question">
+            <p>Pregunta 3: ¿Qué punto se mueve con mayor velocidad lineal?</p>
+            <input type="radio" name="q3" value="A">A
+            <input type="radio" name="q3" value="B">B
+            <input type="radio" name="q3" value="C">Ambos tienen la misma velocidad lineal.
+        </div>
+        <div class="question">
+            <p>Pregunta 4: ¿Qué punto tiene mayor aceleración tangencial?</p>
+            <input type="radio" name="q4" value="A">A
+            <input type="radio" name="q4" value="B">B
+            <input type="radio" name="q4" value="C">Ambos tienen la misma aceleración tangencial (a_t=0).
+            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (a_t distinta de 0).
+        </div>
+        <div class="question">
+            <p>Pregunta 5: ¿Qué punto tiene mayor aceleración normal?</p>
+            <input type="radio" name="q5" value="A">A
+            <input type="radio" name="q5" value="B">B
+            <input type="radio" name="q5" value="C">Ambos tienen la misma aceleración normal (a_n=0).
+            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (a_n distinta de 0).
+        </div>
+        <button id="submitAnswers">Enviar respuestas</button>
+        <div class="results" id="results"></div>
+    </div>
+
+    <p>Autor: Antonio González García</p>
 
     <script>
         const canvas = document.getElementById('canvas');
@@ -65,6 +137,11 @@
         const startButton = document.getElementById('startButton');
         const pauseButton = document.getElementById('pauseButton');
         const resetButton = document.getElementById('resetButton');
+        const showGraph = document.getElementById('showGraph');
+        const graphDiv = document.getElementById('graph');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+        const velocitiesDiv = document.getElementById('velocities');
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -72,6 +149,9 @@
         let angle = 0;
         let animationId;
         let isPaused = false;
+        let time = 0;
+        let distanceA = 0;
+        let distanceB = 0;
 
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -111,8 +191,9 @@
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
                 ctx.fillStyle = 'black';
-                ctx.fillText(`v_A: ${vA} m/s`, 10, 20);
-                ctx.fillText(`v_B: ${vB} m/s`, 10, 40);
+                ctx.fillText(`v_A: $${vA} \\ \\text{m/s}$`, 10, 20);
+                ctx.fillText(`v_B: $${vB} \\ \\text{m/s}$`, 10, 40);
+                MathJax.typeset(); // Render LaTeX
             }
         }
 
@@ -121,6 +202,9 @@
             const deltaAngle = (rpm * 360) / 60 / 60;
             angle = (angle - deltaAngle) % 360; // Gira en el sentido de las agujas del reloj
             drawWheel();
+            if (showGraph.checked) {
+                updateGraph();
+            }
             if (!isPaused) {
                 animationId = requestAnimationFrame(update);
             }
@@ -153,8 +237,94 @@
         sliderB.addEventListener('input', drawWheel);
         rpmSlider.addEventListener('input', drawWheel);
         showVelocities.addEventListener('change', drawWheel);
+        showGraph.addEventListener('change', () => {
+            if (showGraph.checked) {
+                graphDiv.style.display = 'block';
+                resetGraph();
+            } else {
+                graphDiv.style.display = 'none';
+            }
+        });
 
         drawWheel();
+
+        // Graph for distance vs time
+        function resetGraph() {
+            time = 0;
+            distanceA = 0;
+            distanceB = 0;
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            graphCtx.beginPath();
+            graphCtx.moveTo(0, graphCanvas.height);
+        }
+
+        function updateGraph() {
+            time += 1 / 60;
+            const rpm = parseInt(rpmSlider.value);
+            const omega = (rpm * 2 * Math.PI) / 60;
+            const radiusA = parseInt(sliderA.value);
+            const radiusB = parseInt(sliderB.value);
+            distanceA = omega * radiusA * time / 100; // Convert to meters
+            distanceB = omega * radiusB * time / 100; // Convert to meters
+
+            const x = time * 10;
+            const yA = graphCanvas.height - distanceA * 10;
+            const yB = graphCanvas.height - distanceB * 10;
+
+            graphCtx.lineTo(x, yA);
+            graphCtx.strokeStyle = 'red';
+            graphCtx.stroke();
+
+            graphCtx.lineTo(x, yB);
+            graphCtx.strokeStyle = 'blue';
+            graphCtx.stroke();
+        }
+
+        // Questions and answers
+        const correctAnswers = {
+            q1: 'C',
+            q2: 'A',
+            q3: 'A',
+            q4: 'C',
+            q5: 'A'
+        };
+
+        const submitButton = document.getElementById('submitAnswers');
+        const resultsDiv = document.getElementById('results');
+
+        submitButton.addEventListener('click', () => {
+            let score = 0;
+            const formData = new FormData();
+            const formInputs = document.querySelectorAll('.questions input[type="radio"]:checked');
+            formInputs.forEach(input => {
+                formData.append(input.name, input.value);
+            });
+
+            resultsDiv.innerHTML = '';
+            for (let [key, value] of formData.entries()) {
+                const correct = value === correctAnswers[key];
+                score += correct ? 1 : 0;
+                const resultText = document.createElement('p');
+                resultText.textContent = `${key.toUpperCase()}: ${value} ${correct ? '✓' : '✗'}`;
+                resultsDiv.appendChild(resultText);
+            }
+
+            const summary = document.createElement('p');
+            summary.textContent = `Resumen de aciertos: ${score} de 5`;
+            resultsDiv.appendChild(summary);
+        });
+
+        // Shuffle questions options
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionContainers = document.querySelectorAll('.question');
+            questionContainers.forEach(container => {
+                const options = Array.from(container.querySelectorAll('input[type="radio"]'));
+                for (let i = options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [options[i].parentNode, options[j].parentNode] = [options[j].parentNode, options[i].parentNode];
+                }
+            });
+        });
     </script>
 </body>
 </html>
