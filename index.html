@@ -28,6 +28,9 @@
             position: absolute;
             top: 10px;
             right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border: 1px solid #000;
         }
     </style>
 </head>
@@ -110,9 +113,9 @@
             if (showVelocities.checked) {
                 const rpm = parseInt(rpmSlider.value);
                 const omega = (rpm * 2 * Math.PI) / 60;
-                const vA = (omega * radiusA).toFixed(2);
-                const vB = (omega * radiusB).toFixed(2);
-                velocitiesDiv.innerHTML = `Velocidad de A: ${vA} px/s<br>Velocidad de B: ${vB} px/s`;
+                const vA = (omega * radiusA / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+                const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
+                velocitiesDiv.innerHTML = `v_A: ${vA} m/s<br>v_B: ${vB} m/s`;
             } else {
                 velocitiesDiv.innerHTML = '';
             }
