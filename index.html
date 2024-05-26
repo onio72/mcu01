@@ -193,7 +193,7 @@
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
                 velocitiesDiv.innerHTML = `$$v_A = ${vA}\\, \\text{m/s}$$<br>$$v_B = ${vB}\\, \\text{m/s}$$`;
-                MathJax.typeset(); // Render LaTeX
+                MathJax.typesetPromise(); // Render LaTeX
             } else {
                 velocitiesDiv.innerHTML = '';
             }
@@ -291,6 +291,7 @@
             // Draw the red line for A
             graphCtx.beginPath();
             graphCtx.strokeStyle = 'red';
+            graphCtx.moveTo(distancesA[0].x, distancesA[0].y);
             distancesA.forEach(point => {
                 graphCtx.lineTo(point.x, point.y);
             });
@@ -299,6 +300,7 @@
             // Draw the blue line for B
             graphCtx.beginPath();
             graphCtx.strokeStyle = 'blue';
+            graphCtx.moveTo(distancesB[0].x, distancesB[0].y);
             distancesB.forEach(point => {
                 graphCtx.lineTo(point.x, point.y);
             });
