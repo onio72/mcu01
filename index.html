@@ -115,14 +115,14 @@
             <input type="radio" name="q4" value="A">A
             <input type="radio" name="q4" value="B">B
             <input type="radio" name="q4" value="C">Ambos tienen la misma aceleración tangencial (\(a_t=0\)).
-            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (\(a_t\) distinta de 0).
+            <input type="radio" name="q4" value="D">Ambos tienen la misma aceleración tangencial (\(a_t \neq 0\)).
         </div>
         <div class="question">
             <p>Pregunta 5: ¿Qué punto tiene mayor aceleración normal?</p>
             <input type="radio" name="q5" value="A">A
             <input type="radio" name="q5" value="B">B
             <input type="radio" name="q5" value="C">Ambos tienen la misma aceleración normal (\(a_n=0\)).
-            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (\(a_n\) distinta de 0).
+            <input type="radio" name="q5" value="D">Ambos tienen la misma aceleración normal (\(a_n \neq 0\)).
         </div>
         <button id="submitAnswers">Enviar respuestas</button>
         <div class="results" id="results"></div>
@@ -284,24 +284,28 @@
             const distanceA = omega * radiusA * time / 100; // Convert to meters
             const distanceB = omega * radiusB * time / 100; // Convert to meters
 
-            distancesA.push({ x: time * 10, y: 400 - distanceA * 10 });
-            distancesB.push({ x: time * 10, y: 400 - distanceB * 10 });
+            distancesA.push({ x: 40 + time * 10, y: 400 - distanceA * 10 });
+            distancesB.push({ x: 40 + time * 10, y: 400 - distanceB * 10 });
 
             graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
             resetGraph();
 
+            // Draw the red line for A
             graphCtx.beginPath();
             graphCtx.strokeStyle = 'red';
-            distancesA.forEach(point => {
-                graphCtx.lineTo(point.x, point.y);
-            });
+            graphCtx.moveTo(distancesA[0].x, distancesA[0].y);
+            for (let i = 1; i < distancesA.length; i++) {
+                graphCtx.lineTo(distancesA[i].x, distancesA[i].y);
+            }
             graphCtx.stroke();
 
+            // Draw the blue line for B
             graphCtx.beginPath();
             graphCtx.strokeStyle = 'blue';
-            distancesB.forEach(point => {
-                graphCtx.lineTo(point.x, point.y);
-            });
+            graphCtx.moveTo(distancesB[0].x, distancesB[0].y);
+            for (let i = 1; i < distancesB.length; i++) {
+                graphCtx.lineTo(distancesB[i].x, distancesB[i].y);
+            }
             graphCtx.stroke();
         }
 
