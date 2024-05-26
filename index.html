@@ -192,10 +192,10 @@
                 const vA = (omega * radiusA / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
                 const vB = (omega * radiusB / 100).toFixed(2); // Convert to m/s (assuming 100 px = 1 m)
 
-                ctx.fillStyle = 'black';
-                ctx.fillText(`$$v_A = ${vA}\\, \\text{m/s}$$`, 10, 20);
-                ctx.fillText(`$$v_B = ${vB}\\, \\text{m/s}$$`, 10, 40);
+                velocitiesDiv.innerHTML = `$$v_A = ${vA}\\, \\text{m/s}$$<br>$$v_B = ${vB}\\, \\text{m/s}$$`;
                 MathJax.typeset(); // Render LaTeX
+            } else {
+                velocitiesDiv.innerHTML = '';
             }
         }
 
@@ -233,8 +233,14 @@
             resetGraph();
         });
 
-        sliderA.addEventListener('input', drawWheel);
-        sliderB.addEventListener('input', drawWheel);
+        sliderA.addEventListener('input', () => {
+            drawWheel();
+            resetGraph();
+        });
+        sliderB.addEventListener('input', () => {
+            drawWheel();
+            resetGraph();
+        });
         rpmSlider.addEventListener('input', drawWheel);
         showVelocities.addEventListener('change', drawWheel);
         showGraph.addEventListener('change', () => {
@@ -250,6 +256,8 @@
 
         // Graph for distance vs time
         function resetGraph() {
+            distancesA = [];
+            distancesB = [];
             graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
 
             // Draw axes
